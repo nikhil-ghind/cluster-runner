@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package dispatcher.v1;
+
+// Dispatcher gRPC contract — the orchestrator submits jobs, workers
+// stream status updates, and operators query cluster state.
+
+service Dispatcher {
+  // Submit a single job for scheduling.
+  rpc SubmitJob(JobSpec) returns (JobHandle);
+
+  // Submit a job graph (matrix / fan-out test sweep).
+  rpc SubmitMatrix(MatrixSpec) returns (MatrixHandle);
+
+  // Stream job lifecycle events (PENDING -> SCHEDULED -> RUNNING -> ...).
+  rpc StreamEvents(WatchRequest) returns (stream JobEvent);
+
+  // Cancel a job (best-effort SIGTERM, then SIGKILL after grace).
+  rpc CancelJob(JobId) returns (Ack);
+
+  // Cluster snapshot for ops UIs.
+  rpc Snapshot(SnapshotRequest) returns (ClusterSnapshot);
+}
+
+service WorkerCallback {
+  // Worker pods report status back to dispatcher.
+  rpc Report(stream WorkerStatus) returns (Ack);
+}
+
+message JobSpec {
+  string name = 1;
+  string image = 2;
+  repeated string command = 3;
+  repeated EnvVar env = 4;
+  ResourceRequest resources = 5;
+  Isolation isolation = 6;
+  Placement placement = 7;
+  int32 retries = 8;
+  int32 timeout_secs = 9;
+  map<string, string> labels = 10;
+  string artifact_url = 11;
+  string git_sha = 12;
+}
+
+message EnvVar {
+  string name = 1;
+  string value = 2;
+}
+
+message ResourceRequest {
+  double cpu = 1;            // logical cores
+  int64 memory_mib = 2;
+  int32 gpu = 3;             // count
+  string gpu_class = 4;      // e.g. "a100", "h100"
+  int64 ephemeral_storage_mib = 5;
+  int64 io_bandwidth_mbps = 6;
+}
+
+message Isolation {
+  // cgroup v2 controllers + namespaces to enable on the worker.
+  bool pid_namespace = 1;
+  bool mount_namespace = 2;
+  bool net_namespace = 3;
+  bool user_namespace = 4;
+  bool ipc_namespace = 5;
+  bool cgroup_namespace = 6;
+  string seccomp_profile = 7;
+  string apparmor_profile = 8;
+  bool readonly_rootfs = 9;
+  bool drop_capabilities = 10;
+}
+
+message Placement {
+  // Hybrid-cloud placement hints.
+  string preferred_cloud = 1;   // "onprem" | "aws" | "gcp" | "azure"
+  repeated string node_selectors = 2;
+  string priority_class = 3;
+  bool spot_ok = 4;
+  int32 zone_spread = 5;
+}
+
+message MatrixSpec {
+  string name = 1;
+  JobSpec base = 2;
+  repeated MatrixAxis axes = 3;
+  int32 max_parallel = 4;
+  bool fail_fast = 5;
+}
+
+message MatrixAxis {
+  string name = 1;
+  repeated string values = 2;
+}
+
+message JobHandle  { string job_id = 1; string queue = 2; }
+message MatrixHandle { string matrix_id = 1; repeated string job_ids = 2; }
+message JobId      { string id = 1; }
+message Ack        { bool ok = 1; string message = 2; }
+
+message JobEvent {
+  string job_id = 1;
+  string phase = 2;            // PENDING|SCHEDULED|RUNNING|SUCCEEDED|FAILED|CANCELED
+  int32 exit_code = 3;
+  string node = 4;
+  string pod = 5;
+  int64 ts_unix_ms = 6;
+  string message = 7;
+  ResourceUsage usage = 8;
+}
+
+message ResourceUsage {
+  double cpu_seconds = 1;
+  int64  peak_rss_bytes = 2;
+  int64  rx_bytes = 3;
+  int64  tx_bytes = 4;
+  int64  read_bytes = 5;
+  int64  write_bytes = 6;
+}
+
+message WatchRequest {
+  string filter_label = 1;
+  bool include_history = 2;
+}
+
+message WorkerStatus {
+  string worker_id = 1;
+  string job_id = 2;
+  string phase = 3;
+  int32 exit_code = 4;
+  string log_chunk = 5;
+  ResourceUsage usage = 6;
+  int64 ts_unix_ms = 7;
+}
+
+message SnapshotRequest { bool include_jobs = 1; }
+
+message ClusterSnapshot {
+  int32 total_jobs = 1;
+  int32 running_jobs = 2;
+  int32 pending_jobs = 3;
+  repeated NodeInfo nodes = 4;
+  int64 ts_unix_ms = 5;
+}
+
+message NodeInfo {
+  string name = 1;
+  string cloud = 2;
+  string zone = 3;
+  double cpu_total = 4;
+  double cpu_used = 5;
+  int64 memory_total_mib = 6;
+  int64 memory_used_mib = 7;
+  int32 gpu_total = 7000;
+  int32 gpu_used = 7001;
+  bool ready = 8;
+}
