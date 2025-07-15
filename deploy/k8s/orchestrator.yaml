@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: ci-runner
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: orchestrator } }
+  template:
+    metadata:
+      labels: { app: orchestrator }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+    spec:
+      containers:
+        - name: orchestrator
+          image: ghcr.io/nikhil-ghind/cluster-orchestrator:latest
+          ports:
+            - { containerPort: 8080, name: http }
+            - { containerPort: 9100, name: metrics }
+          env:
+            - { name: CI_DISPATCHER_ENDPOINT, value: dispatcher.ci-runner.svc:7070 }
+            - { name: CI_POSTGRES_URL, valueFrom: { secretKeyRef: { name: ci-postgres, key: url } } }
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits:   { cpu: "2",    memory: "2Gi"    }
+          livenessProbe:  { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 5 }
+          readinessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 3 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orchestrator
+  namespace: ci-runner
+spec:
+  selector: { app: orchestrator }
+  ports:
+    - { name: http,    port: 8080, targetPort: http }
+    - { name: metrics, port: 9100, targetPort: metrics }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orchestrator
+  namespace: ci-runner
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orchestrator
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 60 } }
+    - type: Pods
+      pods: { metric: { name: orch_pipelines_active }, target: { type: AverageValue, averageValue: "20" } }

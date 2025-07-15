@@ -1,0 +1,41 @@
+# Default-deny for the ci-runner namespace; explicit allows for the
+# orchestrator->dispatcher and worker->dispatcher paths.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: ci-runner
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: orch-to-dispatcher
+  namespace: ci-runner
+spec:
+  podSelector: { matchLabels: { app: dispatcher } }
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app: orchestrator } }
+        - podSelector: { matchLabels: { "ci-runner/role": "worker" } }
+      ports:
+        - { protocol: TCP, port: 7070 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dispatcher-egress
+  namespace: ci-runner
+spec:
+  podSelector: { matchLabels: { app: dispatcher } }
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: kube-system } }
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0, except: ["169.254.169.254/32"] }
+      ports:
+        - { protocol: TCP, port: 443 }

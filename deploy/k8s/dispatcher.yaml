@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ci-runner
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dispatcher
+  namespace: ci-runner
+  labels: { app: dispatcher }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: dispatcher } }
+  template:
+    metadata:
+      labels: { app: dispatcher }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9095"
+    spec:
+      serviceAccountName: dispatcher
+      containers:
+        - name: dispatcher
+          image: ghcr.io/nikhil-ghind/cluster-dispatcher:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: grpc,    containerPort: 7070 }
+            - { name: metrics, containerPort: 9095 }
+          env:
+            - { name: RUST_LOG, value: "info" }
+          args:
+            - --listen=0.0.0.0:7070
+            - --metrics=0.0.0.0:9095
+            - --namespace=ci-runner
+            - --max-concurrency=4096
+            - --scheduler-workers=16
+          resources:
+            requests: { cpu: "2",   memory: "2Gi" }
+            limits:   { cpu: "4",   memory: "4Gi" }
+          livenessProbe:
+            tcpSocket: { port: grpc }
+            initialDelaySeconds: 10
+          readinessProbe:
+            tcpSocket: { port: grpc }
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dispatcher
+  namespace: ci-runner
+spec:
+  selector: { app: dispatcher }
+  ports:
+    - { name: grpc,    port: 7070, targetPort: grpc }
+    - { name: metrics, port: 9095, targetPort: metrics }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dispatcher
+  namespace: ci-runner
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dispatcher
+  namespace: ci-runner
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/status"]
+    verbs: ["create", "get", "list", "watch", "delete", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dispatcher
+  namespace: ci-runner
+subjects:
+  - kind: ServiceAccount
+    name: dispatcher
+    namespace: ci-runner
+roleRef:
+  kind: Role
+  name: dispatcher
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: { name: ci-critical }
+value: 1000000
+globalDefault: false
+description: "Critical CI jobs."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: { name: ci-normal }
+value: 100000
+globalDefault: true
+description: "Default CI job priority."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: { name: ci-low }
+value: 1000
+globalDefault: false
+description: "Background / nightly CI jobs."
