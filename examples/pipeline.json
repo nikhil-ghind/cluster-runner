@@ -1,0 +1,38 @@
+{
+  "name": "linux-test-sweep",
+  "git_sha": "deadbeefcafebabe",
+  "jobs": [
+    {
+      "name": "build",
+      "image": "ghcr.io/nikhil-ghind/ci-base:latest",
+      "command": ["make", "release"],
+      "resources": { "cpu": 8, "memory_mib": 16384, "ephemeral_storage_mib": 20480 },
+      "placement": { "preferred_cloud": "aws", "priority_class": "ci-normal", "spot_ok": true }
+    },
+    {
+      "name": "smoke",
+      "image": "ghcr.io/nikhil-ghind/ci-base:latest",
+      "command": ["bash", "-c", "ctest -L smoke"],
+      "depends_on": ["build"],
+      "resources": { "cpu": 4, "memory_mib": 8192 }
+    }
+  ],
+  "matrices": [
+    {
+      "base": {
+        "name": "kernel-perf",
+        "image": "ghcr.io/nikhil-ghind/ci-base:gpu",
+        "command": ["bash", "-c", "scripts/run-perf.sh ${KERNEL} ${BATCH}"],
+        "resources": { "cpu": 8, "memory_mib": 32768, "gpu": 1, "gpu_class": "a100" },
+        "placement": { "preferred_cloud": "aws", "priority_class": "ci-critical" },
+        "depends_on": ["build"]
+      },
+      "axes": [
+        { "name": "kernel", "values": ["flash", "naive", "fused"] },
+        { "name": "batch",  "values": ["32", "64", "128", "256"] }
+      ],
+      "max_parallel": 12,
+      "fail_fast": false
+    }
+  ]
+}
