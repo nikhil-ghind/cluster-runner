@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430" role="img" aria-label="A five-bucket priority queue drained by a weighted lottery: critical is picked most often but every bucket including idle gets served, and each pick becomes a pod once a semaphore permit is free">
+  <title>Weighted lottery over five priority buckets</title>
+  <defs><marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6e7681"/></marker></defs>
+  <text x="20" y="30" font-family="sans-serif" font-size="17" font-weight="bold" fill="#8b949e">Priority queue: weighted lottery, not strict priority</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="13" fill="#8b949e">weights 16 / 8 / 4 / 2 / 1 — critical wins most rolls, but an idle job is never starved out entirely</text>
+  <text x="30" y="115" font-family="sans-serif" font-size="13" fill="#f85149">critical</text>
+  <text x="30" y="131" font-family="sans-serif" font-size="11" fill="#8b949e">weight 16</text>
+  <rect x="130" y="97" width="40" height="26" rx="5" fill="#f85149" opacity="0.28" stroke="#f85149" stroke-width="1.2"/>
+  <rect x="176" y="97" width="40" height="26" rx="5" fill="#f85149" opacity="0.28" stroke="#f85149" stroke-width="1.2"/>
+  <rect x="222" y="97" width="40" height="26" rx="5" fill="#f85149" opacity="0.28" stroke="#f85149" stroke-width="1.2"/>
+  <rect x="268" y="97" width="40" height="26" rx="5" fill="#f85149" opacity="0.28" stroke="#f85149" stroke-width="1.2"/>
+  <text x="322" y="115" font-family="sans-serif" font-size="12" fill="#8b949e">…</text>
+  <rect x="352" y="99" width="122" height="22" rx="4" fill="none" stroke="#6e7681" stroke-width="1"/>
+  <rect x="353" y="100" width="0" height="20" rx="3" fill="#f85149" opacity="0.55">
+    <animate attributeName="width" values="0;0;20;20;40;40;60;60;80;80;100;100" keyTimes="0.0;0.099;0.1;0.199;0.2;0.399;0.4;0.699;0.7;0.899;0.9;1.0" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+  </rect>
+  <text x="30" y="160" font-family="sans-serif" font-size="13" fill="#d29922">high</text>
+  <text x="30" y="176" font-family="sans-serif" font-size="11" fill="#8b949e">weight 8</text>
+  <rect x="130" y="142" width="40" height="26" rx="5" fill="#d29922" opacity="0.28" stroke="#d29922" stroke-width="1.2"/>
+  <rect x="176" y="142" width="40" height="26" rx="5" fill="#d29922" opacity="0.28" stroke="#d29922" stroke-width="1.2"/>
+  <rect x="222" y="142" width="40" height="26" rx="5" fill="#d29922" opacity="0.28" stroke="#d29922" stroke-width="1.2"/>
+  <rect x="268" y="142" width="40" height="26" rx="5" fill="#d29922" opacity="0.28" stroke="#d29922" stroke-width="1.2"/>
+  <text x="322" y="160" font-family="sans-serif" font-size="12" fill="#8b949e">…</text>
+  <rect x="352" y="144" width="122" height="22" rx="4" fill="none" stroke="#6e7681" stroke-width="1"/>
+  <rect x="353" y="145" width="0" height="20" rx="3" fill="#d29922" opacity="0.55">
+    <animate attributeName="width" values="0;0;20;20;40;40" keyTimes="0.0;0.299;0.3;0.599;0.6;1.0" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+  </rect>
+  <text x="30" y="205" font-family="sans-serif" font-size="13" fill="#3fb950">normal</text>
+  <text x="30" y="221" font-family="sans-serif" font-size="11" fill="#8b949e">weight 4</text>
+  <rect x="130" y="187" width="40" height="26" rx="5" fill="#3fb950" opacity="0.28" stroke="#3fb950" stroke-width="1.2"/>
+  <rect x="176" y="187" width="40" height="26" rx="5" fill="#3fb950" opacity="0.28" stroke="#3fb950" stroke-width="1.2"/>
+  <rect x="222" y="187" width="40" height="26" rx="5" fill="#3fb950" opacity="0.28" stroke="#3fb950" stroke-width="1.2"/>
+  <rect x="268" y="187" width="40" height="26" rx="5" fill="#3fb950" opacity="0.28" stroke="#3fb950" stroke-width="1.2"/>
+  <text x="322" y="205" font-family="sans-serif" font-size="12" fill="#8b949e">…</text>
+  <rect x="352" y="189" width="122" height="22" rx="4" fill="none" stroke="#6e7681" stroke-width="1"/>
+  <rect x="353" y="190" width="0" height="20" rx="3" fill="#3fb950" opacity="0.55">
+    <animate attributeName="width" values="0;0;20;20" keyTimes="0.0;0.499;0.5;1.0" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+  </rect>
+  <text x="30" y="250" font-family="sans-serif" font-size="13" fill="#58a6ff">low</text>
+  <text x="30" y="266" font-family="sans-serif" font-size="11" fill="#8b949e">weight 2</text>
+  <rect x="130" y="232" width="40" height="26" rx="5" fill="#58a6ff" opacity="0.28" stroke="#58a6ff" stroke-width="1.2"/>
+  <rect x="176" y="232" width="40" height="26" rx="5" fill="#58a6ff" opacity="0.28" stroke="#58a6ff" stroke-width="1.2"/>
+  <rect x="222" y="232" width="40" height="26" rx="5" fill="#58a6ff" opacity="0.28" stroke="#58a6ff" stroke-width="1.2"/>
+  <rect x="268" y="232" width="40" height="26" rx="5" fill="#58a6ff" opacity="0.28" stroke="#58a6ff" stroke-width="1.2"/>
+  <text x="322" y="250" font-family="sans-serif" font-size="12" fill="#8b949e">…</text>
+  <rect x="352" y="234" width="122" height="22" rx="4" fill="none" stroke="#6e7681" stroke-width="1"/>
+  <rect x="353" y="235" width="0" height="20" rx="3" fill="#58a6ff" opacity="0.55">
+    <animate attributeName="width" values="0;0;20;20" keyTimes="0.0;0.799;0.8;1.0" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+  </rect>
+  <text x="30" y="295" font-family="sans-serif" font-size="13" fill="#a371f7">idle</text>
+  <text x="30" y="311" font-family="sans-serif" font-size="11" fill="#8b949e">weight 1</text>
+  <rect x="130" y="277" width="40" height="26" rx="5" fill="#a371f7" opacity="0.28" stroke="#a371f7" stroke-width="1.2"/>
+  <rect x="176" y="277" width="40" height="26" rx="5" fill="#a371f7" opacity="0.28" stroke="#a371f7" stroke-width="1.2"/>
+  <rect x="222" y="277" width="40" height="26" rx="5" fill="#a371f7" opacity="0.28" stroke="#a371f7" stroke-width="1.2"/>
+  <rect x="268" y="277" width="40" height="26" rx="5" fill="#a371f7" opacity="0.28" stroke="#a371f7" stroke-width="1.2"/>
+  <text x="322" y="295" font-family="sans-serif" font-size="12" fill="#8b949e">…</text>
+  <rect x="352" y="279" width="122" height="22" rx="4" fill="none" stroke="#6e7681" stroke-width="1"/>
+  <rect x="353" y="280" width="0" height="20" rx="3" fill="#a371f7" opacity="0.55">
+    <animate attributeName="width" values="0;0;20;20" keyTimes="0.0;0.999;1.0;1.0" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+  </rect>
+  <text x="413" y="88" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">jobs served this cycle</text>
+  <text x="228" y="88" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">queued jobs per bucket</text>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="500,110;500,110;500,155;500,110;500,200;500,155;500,110;500,245;500,110;500,290;500,290" keyTimes="0.0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1" dur="12.0s" calcMode="discrete" repeatCount="indefinite"/>
+    <path d="M0,-11 L18,0 L0,11 z" fill="#8b949e"/>
+  </g>
+  <text x="509" y="88" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">roll</text>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#f85149" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.0;0.005;0.075;0.08;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.0;0.075;1" calcMode="linear" path="M535,110 C580,110 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#f85149" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.1;0.105;0.175;0.18;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.1;0.175;1" calcMode="linear" path="M535,110 C580,110 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#d29922" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.2;0.205;0.275;0.28;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.2;0.275;1" calcMode="linear" path="M535,155 C580,155 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#f85149" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.3;0.305;0.375;0.38;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.3;0.375;1" calcMode="linear" path="M535,110 C580,110 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#3fb950" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.4;0.405;0.475;0.48;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.4;0.475;1" calcMode="linear" path="M535,200 C580,200 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#d29922" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.5;0.505;0.575;0.58;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.5;0.575;1" calcMode="linear" path="M535,155 C580,155 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#f85149" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.6;0.605;0.675;0.68;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.6;0.675;1" calcMode="linear" path="M535,110 C580,110 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#58a6ff" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.7;0.705;0.775;0.78;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.7;0.775;1" calcMode="linear" path="M535,245 C580,245 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#f85149" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.8;0.805;0.875;0.88;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.8;0.875;1" calcMode="linear" path="M535,110 C580,110 580,210 616,210"/>
+  </g>
+  <g opacity="0">
+    <rect x="-20" y="-13" width="40" height="26" rx="5" fill="#a371f7" opacity="0.85"/>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.9;0.905;0.975;0.98;1" dur="12.0s" repeatCount="indefinite"/>
+    <animateMotion dur="12.0s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.9;0.975;1" calcMode="linear" path="M535,290 C580,290 580,210 616,210"/>
+  </g>
+  <rect x="620" y="150" width="250" height="120" rx="8" fill="none" stroke="#8b949e" stroke-width="1.8"/>
+  <text x="745" y="176" font-family="sans-serif" font-size="14" fill="#8b949e" text-anchor="middle">scheduler workers</text>
+  <text x="745" y="196" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">N tokio tasks, each dequeues</text>
+  <text x="745" y="214" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">then waits on a Semaphore permit</text>
+  <text x="745" y="234" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">kube.pod_for(job) then submit_pod</text>
+  <text x="745" y="254" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">permit held until the pod is terminal</text>
+  <path d="M745,274 L745,310" stroke="#6e7681" stroke-width="1.5" fill="none" marker-end="url(#mk)"/>
+  <rect x="640" y="316" width="210" height="44" rx="7" fill="none" stroke="#3fb950" stroke-width="1.6"/>
+  <text x="745" y="336" font-family="sans-serif" font-size="13" fill="#3fb950" text-anchor="middle">Pod created on the cluster</text>
+  <text x="745" y="352" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">node selector picks on-prem or AWS</text>
+  <text x="450" y="400" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">a failed pod submit re-enqueues the job with one fewer retry, so it rejoins the same lottery</text>
+  <text x="450" y="420" font-family="sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">if the rolled bucket is empty the scheduler walks down to the next non-empty one, then upward</text>
+</svg>

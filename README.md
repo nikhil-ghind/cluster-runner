@@ -22,38 +22,54 @@ provider alias.
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    CI["CI trigger / CLI<br/>pipeline JSON"]
+
+    subgraph orch["orchestrator — Python, FastAPI :8080"]
+        API["app/main.py<br/>REST surface, /v1/events stream"]
+        PIPE["app/pipeline.py<br/>expand_matrices, topo_sort (Kahn)"]
+        DC["app/dispatcher_client.py<br/>gRPC client"]
+        PG[("Postgres<br/>pipeline and job state")]
+    end
+
+    subgraph disp["dispatcher — Rust, tonic gRPC :7070"]
+        SRV["server.rs<br/>SubmitJob, WorkerCallback"]
+        Q["queue.rs<br/>5 priority buckets,<br/>weighted lottery 16/8/4/2/1"]
+        SCHED["scheduler.rs<br/>N worker tasks, global Semaphore"]
+        KUBE["cluster.rs<br/>pod_for: SecurityContext, GPU requests,<br/>node selectors, priority class, matrix labels"]
+        WATCH["pod watch loop<br/>apiserver events to JobEvent"]
+        ST["state.rs<br/>in-memory job table + broadcast channel"]
+        MET["metrics.rs<br/>Prometheus :9095"]
+    end
+
+    K8S["kube-apiserver"]
+    ONPREM["on-prem pool<br/>ci-runner/cloud=onprem"]
+    AWS["AWS EKS pool<br/>spot CPU + A100 GPU node groups"]
+    WORKER["ci-worker (Rust) — one per job<br/>unshare namespaces, cgroup v2 leaf,<br/>drop capabilities, exec the command"]
+
+    CI --> API --> PIPE --> DC --> SRV
+    API --> PG
+    SRV --> Q --> SCHED --> KUBE --> K8S
+    K8S --> ONPREM
+    K8S --> AWS
+    ONPREM --> WORKER
+    AWS --> WORKER
+    WORKER -->|"WorkerStatus stream:<br/>memory.peak, cpu usage_usec"| SRV
+    K8S --> WATCH --> ST
+    ST -->|"broadcast"| API
+    SCHED --> MET
+    Q --> MET
 ```
-                                   pipeline.yaml
-                                       │
-                                       ▼
-                          ┌─────────────────────────┐
-                          │   orchestrator (Python) │  FastAPI :8080
-                          │  • DAG validation       │  Postgres state
-                          │  • matrix expansion     │  Prometheus :9100
-                          └────────────┬────────────┘
-                                       │ gRPC
-                                       ▼
-                          ┌─────────────────────────┐
-                          │   dispatcher (Rust)     │  gRPC :7070
-                          │  • priority queue       │  Prometheus :9095
-                          │  • Pod factory          │
-                          │  • watcher → events     │
-                          └────────────┬────────────┘
-                                       │ kube-apiserver
-                          ┌────────────┴────────────────────────────┐
-                          ▼                                          ▼
-              ┌────────────────────────┐              ┌────────────────────────────┐
-              │  on-prem pool          │              │  AWS pool (EKS)            │
-              │  ci-runner/cloud=onprem│              │  spot CPU + A100/H100 GPU  │
-              │  bare-metal scheduler  │              │  managed node groups       │
-              └────────────┬───────────┘              └───────────────┬────────────┘
-                           ▼                                          ▼
-                      ┌────────────┐                            ┌────────────┐
-                      │ ci-worker  │  ← cgroup v2 leaf,         │ ci-worker  │
-                      │ (per job)  │    unshare(2) namespaces,  │ (per job)  │
-                      │            │    drop capabilities       │            │
-                      └────────────┘                            └────────────┘
-```
+
+<img src="docs/priority-lottery.svg" alt="A five-bucket priority queue drained by a weighted lottery, with critical jobs winning most rolls while low and idle jobs still get served, each pick becoming a pod once a semaphore permit frees" width="880">
+
+The scheduler is the part worth understanding. Strict priority would starve the
+`idle` bucket forever, so `dequeue()` rolls a weighted lottery across the five
+buckets instead, then walks to the nearest non-empty bucket if the winner has
+nothing queued. Cluster-wide concurrency is a separate control: a global
+`Semaphore` whose permit is held from pod creation until the watch loop marks
+the job terminal.
 
 ### How jobs become pods
 
